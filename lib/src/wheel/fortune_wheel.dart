@@ -139,6 +139,10 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
   /// Defaults to [Alignment.topCenter]
   final Alignment alignment;
 
+  final String? border;
+
+  final double? padding;
+
   double _getAngle(double progress) {
     return 2 * _math.pi * rotationCount * progress;
   }
@@ -154,6 +158,7 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
   /// {@endtemplate}
   FortuneWheel({
     Key? key,
+    this.padding,
     required this.items,
     this.rotationCount = FortuneWidget.kDefaultRotationCount,
     this.selected = const Stream<int>.empty(),
@@ -167,6 +172,7 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
     this.alignment = Alignment.topCenter,
     PanPhysics? physics,
     this.onFling,
+    this.border,
   })  : physics = physics ?? CircularPanPhysics(),
         assert(items.length > 1),
         super(key: key);
@@ -205,10 +211,21 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
       behavior: HitTestBehavior.translucent,
       physics: physics,
       onFling: onFling,
-      builder: (context, panState) {
-        return Stack(
-          children: [
-            AnimatedBuilder(
+      builder: (_, panState) {
+        return Stack(alignment: Alignment.center, children: [
+          if (border != null) ...[
+            Center(
+              child: Image.asset(
+                border!,
+                fit: BoxFit.fill,
+              ),
+            ),
+          ],
+          Padding(
+            padding: border != null
+                ? EdgeInsets.all(padding ?? 0.0)
+                : EdgeInsets.zero,
+            child: AnimatedBuilder(
               animation: rotateAnim,
               builder: (context, _) {
                 final size = MediaQuery.of(context).size;
@@ -254,12 +271,12 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
                 });
               },
             ),
-            for (var it in indicators)
-              IgnorePointer(
-                child: _WheelIndicator(indicator: it),
-              ),
-          ],
-        );
+          ),
+          for (var it in indicators)
+            IgnorePointer(
+              child: _WheelIndicator(indicator: it),
+            ),
+        ]);
       },
     );
   }
